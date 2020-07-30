@@ -42,6 +42,9 @@ class StorageEngine(object):
     def get_anatomy_function_annotations(self, paper_id):
         return self.db_manager.get_anatomy_function_annotations(paper_id)
 
+    def save_anatomy_function_annotations(self, annotations):
+        return self.db_manager.save_anatomy_function_annotations(annotations)
+
 
 class AnatomyFunctionAnnotationReader:
 
@@ -54,6 +57,22 @@ class AnatomyFunctionAnnotationReader:
             if "paper_id" in req.media:
                 annotations = self.db.get_anatomy_function_annotations(req.media["paper_id"])
                 resp.body = '{{"annotations": {}}}'.format(json.dumps(annotations))
+                resp.status = falcon.HTTP_OK
+            else:
+                resp.status = falcon.HTTP_BAD_REQUEST
+
+
+class AnatomyFunctionAnnotationWriter:
+
+    def __init__(self, storage_engine: StorageEngine):
+        self.db = storage_engine
+        self.logger = logging.getLogger(__name__)
+
+    def on_post(self, req, resp):
+        with self.db:
+            if "annotations" in req.media:
+                annotations = req.media["annotations"]
+                self.db.save_anatomy_function_annotations(annotations)
                 resp.status = falcon.HTTP_OK
             else:
                 resp.status = falcon.HTTP_BAD_REQUEST
@@ -80,7 +99,9 @@ def main():
     app = falcon.API(middleware=[HandleCORS()])
     db_manager = StorageEngine(args.db_name, args.db_user, args.db_password, args.db_host)
     anatomy_function_annotation_reader = AnatomyFunctionAnnotationReader(storage_engine=db_manager)
+    anatomy_function_annotation_writer = AnatomyFunctionAnnotationWriter(storage_engine=db_manager)
     app.add_route('/get_anatomy_function_annotations', anatomy_function_annotation_reader)
+    app.add_route('/save_anatomy_function_annotations', anatomy_function_annotation_writer)
 
     httpd = simple_server.make_server('0.0.0.0', args.port, app)
     httpd.serve_forever()
@@ -94,4 +115,6 @@ else:
     db_manager = StorageEngine(os.environ['DB_NAME'], os.environ['DB_USER'], os.environ['DB_PASSWORD'],
                                os.environ['DB_HOST'])
     anatomy_function_annotation_reader = AnatomyFunctionAnnotationReader(storage_engine=db_manager)
+    anatomy_function_annotation_writer = AnatomyFunctionAnnotationWriter(storage_engine=db_manager)
     app.add_route('/get_anatomy_function_annotations', anatomy_function_annotation_reader)
+    app.add_route('/save_anatomy_function_annotations', anatomy_function_annotation_writer)
