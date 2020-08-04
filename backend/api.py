@@ -42,8 +42,8 @@ class StorageEngine(object):
     def get_anatomy_function_annotations(self, paper_id):
         return self.db_manager.get_anatomy_function_annotations(paper_id)
 
-    def save_anatomy_function_annotations(self, annotations):
-        return self.db_manager.save_anatomy_function_annotations(annotations)
+    def save_changes(self, annotations, paper_id):
+        return self.db_manager.save_changes(annotations, paper_id)
 
 
 class AnatomyFunctionAnnotationReader:
@@ -70,9 +70,10 @@ class AnatomyFunctionAnnotationWriter:
 
     def on_post(self, req, resp):
         with self.db:
-            if "annotations" in req.media:
+            if "annotations" in req.media and "paper_id" in req.media:
                 annotations = req.media["annotations"]
-                self.db.save_anatomy_function_annotations(annotations)
+                paper_id = req.media["paper_id"]
+                self.db.save_changes(annotations, paper_id)
                 resp.status = falcon.HTTP_OK
             else:
                 resp.status = falcon.HTTP_BAD_REQUEST

@@ -34,12 +34,12 @@ export const loadPaper = paperId => {
     };
 };
 
-export const saveAnnotations = annotations => {
+export const saveAnnotations = (annotations, paperId) => {
     return dispatch => {
         dispatch(saveRequest());
         let apiEndpoint = process.env.REACT_APP_API_ENDPOINT_WRITE;
         axios
-          .post(apiEndpoint, {annotations: annotations})
+          .post(apiEndpoint, {annotations: annotations, paper_id: paperId})
           .then(res => {
               dispatch(saveSuccess());
           })

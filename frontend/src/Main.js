@@ -69,7 +69,7 @@ class Main extends React.Component {
                         <GraphicalCuration error={this.props.error} showExpressionCuration={false} showPhenotypeCuration={false}
                                            entities={entities}
                                            anatomyFunctionAnnotations={this.props.annotations}
-                                           annotationsSaved={annotations => {this.props.saveAnnotations(annotations.anatomyFunction)}}
+                                           annotationsSaved={annotations => {this.props.saveAnnotations(annotations.anatomyFunction, this.state.evidence)}}
                                            evidence={"WBPaper" + this.state.evidence}
                                            autocompleteObj={new WBAutocomplete('http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/datatype_objects.cgi?action=autocompleteXHR&objectType=')}
                         />
