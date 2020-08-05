@@ -288,8 +288,11 @@ class DBManager(object):
         return [annot.to_dict() for annot in res_annotations]
 
     def get_gene_name_from_id(self, gene_id):
-        self.cur.execute(QUERY_GENE_NAME_TEMPLATE.substitute(gene_id=gene_id))
-        return self.cur.fetchone()[0]
+        if gene_id:
+            self.cur.execute(QUERY_GENE_NAME_TEMPLATE.substitute(gene_id=gene_id))
+            return self.cur.fetchone()[0]
+        else:
+            return ''
 
     def _get_existing_joinkeys(self, paper_id):
         self.cur.execute(QUERY_ANNOTATIONS_TEMPLATE.substitute(paper_id=paper_id))
