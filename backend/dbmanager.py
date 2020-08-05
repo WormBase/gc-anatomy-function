@@ -10,7 +10,7 @@ from backend.query_templates import *
 logger = logging.getLogger(__name__)
 
 
-OPTIONS = ['Sufficient', 'Insufficient', 'Necessary', 'Unnecessary']
+OPTIONS = ['Sufficient', 'Insufficient', 'Necessary', 'Unnecessary', 'Autonomous', 'Nonautonomous']
 
 
 @dataclass
@@ -125,7 +125,7 @@ class DBManager(object):
             annot_phenotype[row[0]].entity_id = row[1].split(' ')[0]
             if len(row[1].split(' ')) > 1:
                 annot_phenotype[row[0]].entity_name = row[1].split(' ')[1][1:-1].replace('_', ' ')
-            if row[2] in OPTIONS and row[3] != '':
+            if row[2] in OPTIONS and row[3] and row[3] != '':
                 annot_phenotype[row[0]].options.add(row[2])
         return annot_phenotype
 
@@ -146,11 +146,10 @@ class DBManager(object):
         annot_involved = defaultdict(lambda: defaultdict(Entity))
         processed_orders = set()
         for row in rows:
+            tissue_id = row[2].split(' ')[0]
             if (row[0], row[1], row[3]) in processed_orders:
                 break
             processed_orders.add((row[0], row[1], row[3]))
-            tissue_id = row[2].split(' ')[0]
-            annot_involved[row[0]][tissue_id] = Entity()
             annot_involved[row[0]][tissue_id].entity_id = tissue_id
             annot_involved[row[0]][tissue_id].created_time = row[5]
             if len(row[2].split(' ')) > 1:
