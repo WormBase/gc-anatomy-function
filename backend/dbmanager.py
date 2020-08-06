@@ -153,7 +153,7 @@ class DBManager(object):
             annot_involved[row[0]][tissue_id].entity_id = tissue_id
             annot_involved[row[0]][tissue_id].created_time = row[5]
             if len(row[2].split(' ')) > 1:
-                annot_involved[row[0]][tissue_id].entity_name = row[2].split(' ')[1][1:-1]
+                annot_involved[row[0]][tissue_id].entity_name = ' '.join(row[2].split(' ')[1:])[1:-1]
             if row[4] and row[4] != '':
                 if row[3] in OPTIONS:
                     annot_involved[row[0]][tissue_id].options.add(row[3])
