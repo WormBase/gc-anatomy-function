@@ -54,7 +54,9 @@ class Main extends React.Component {
                                       }}/>
                     </Col>
                     <Col sm={1}>
-                        <Button variant="light" onClick={() => {this.props.loadPaper(this.state.paperId); this.setState({evidence: this.state.paperId})}}>Load
+                        <Button variant="light" onClick={() => {
+                            const paperId = this.state.paperId.replace('WBPaper', '');
+                            this.props.loadPaper(paperId); this.setState({evidence: paperId, paperId: paperId})}}>Load
                         </Button>
                     </Col>
                 </Row>
