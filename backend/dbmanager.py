@@ -110,7 +110,7 @@ class DBManager(object):
         rows = self.cur.fetchall()
         annot_gene = defaultdict(Entity)
         for row in rows:
-            gene_id = row[1].split(' ')[0]
+            gene_id = row[1].split(' ')[0] if row[1] else ''
             annot_gene[row[0]] = Entity(entity_id=gene_id)
             annot_gene[row[0]].created_time = row[4]
             if row[2] == "Published_as":
@@ -122,8 +122,8 @@ class DBManager(object):
         rows = self.cur.fetchall()
         annot_phenotype = defaultdict(Entity)
         for row in rows:
-            annot_phenotype[row[0]].entity_id = row[1].split(' ')[0]
-            if len(row[1].split(' ')) > 1:
+            annot_phenotype[row[0]].entity_id = row[1].split(' ')[0] if row[1] else ''
+            if row[1] and len(row[1].split(' ')) > 1:
                 annot_phenotype[row[0]].entity_name = row[1].split(' ')[1][1:-1].replace('_', ' ')
             if row[2] in OPTIONS and row[3] and row[3] != '':
                 annot_phenotype[row[0]].options.add(row[2])
@@ -145,18 +145,21 @@ class DBManager(object):
         rows = self.cur.fetchall()
         annot_involved = defaultdict(lambda: defaultdict(Entity))
         processed_orders = set()
+        skip_joinkeys = set()
         for row in rows:
-            tissue_id = row[2].split(' ')[0]
-            if (row[0], row[1], row[3]) in processed_orders:
-                break
-            processed_orders.add((row[0], row[1], row[3]))
-            annot_involved[row[0]][tissue_id].entity_id = tissue_id
-            annot_involved[row[0]][tissue_id].created_time = row[5]
-            if len(row[2].split(' ')) > 1:
-                annot_involved[row[0]][tissue_id].entity_name = ' '.join(row[2].split(' ')[1:])[1:-1]
-            if row[4] and row[4] != '':
-                if row[3] in OPTIONS:
-                    annot_involved[row[0]][tissue_id].options.add(row[3])
+            if row[0] not in skip_joinkeys:
+                tissue_id = row[2].split(' ')[0] if row[2] else ''
+                if (row[0], row[1], row[3]) in processed_orders:
+                    skip_joinkeys.add(row[0])
+                processed_orders.add((row[0], row[1], row[3]))
+                if tissue_id:
+                    annot_involved[row[0]][tissue_id].entity_id = tissue_id
+                    annot_involved[row[0]][tissue_id].created_time = row[5]
+                    if row[2] and len(row[2].split(' ')) > 1:
+                        annot_involved[row[0]][tissue_id].entity_name = ' '.join(row[2].split(' ')[1:])[1:-1]
+                    if row[4] and row[4] != '':
+                        if row[3] in OPTIONS:
+                            annot_involved[row[0]][tissue_id].options.add(row[3])
         return annot_involved
 
     def _extract_remarks(self, wb_paper_id):
@@ -164,18 +167,21 @@ class DBManager(object):
         rows = self.cur.fetchall()
         annot_remarks = defaultdict(lambda: defaultdict(list))
         processed_orders = set()
+        skip_joinkeys = set()
         for row in rows:
-            if (row[0], row[1]) in processed_orders:
-                break
-            processed_orders.add((row[0], row[1]))
-            if row[2].startswith("Genotype"):
-                annot_remarks[row[0]]["Genotypes"].append(row[2][9:][1:-1])
-            elif row[2].startswith("Noctua Model"):
-                annot_remarks[row[0]]["NoctuaModels"].append(row[2][13:][1:-1])
-            elif row[2].startswith("Author Statement"):
-                annot_remarks[row[0]]["AuthorStatements"].append(row[2][17:][1:-1])
-            else:
-                annot_remarks[row[0]]["Remarks"].append(row[2])
+            if row[0] not in skip_joinkeys:
+                if (row[0], row[1]) in processed_orders:
+                    skip_joinkeys.add(row[0])
+                processed_orders.add((row[0], row[1]))
+                if row[2]:
+                    if row[2].startswith("Genotype"):
+                        annot_remarks[row[0]]["Genotypes"].append(row[2][9:][1:-1])
+                    elif row[2].startswith("Noctua Model"):
+                        annot_remarks[row[0]]["NoctuaModels"].append(row[2][13:][1:-1])
+                    elif row[2].startswith("Author Statement"):
+                        annot_remarks[row[0]]["AuthorStatements"].append(row[2][17:][1:-1])
+                    else:
+                        annot_remarks[row[0]]["Remarks"].append(row[2])
         return annot_remarks
 
     def _get_new_joinkey(self):
