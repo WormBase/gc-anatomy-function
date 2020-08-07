@@ -194,11 +194,12 @@ class DBManager(object):
     def _save_annotation(self, annotation: Annotation, joinkey):
         self.cur.execute(INSERT_GENE_TEMPLATE.substitute(
             joinkey=joinkey, gene=annotation.gene.entity_id + " (" + annotation.gene.entity_name + ")"
-            if annotation.gene.entity_id != "" else "", gene_name=annotation.gene.entity_name))
+            if annotation.gene.entity_id != "" else "",
+            gene_name=(annotation.gene.entity_name if annotation.gene.entity_name != ""  else "")))
         self.cur.execute(INSERT_PHENOTYPE_TEMPLATE.substitute(
-            joinkey=joinkey, phenotype=annotation.phenotype.entity_id + " (" +
+            joinkey=joinkey, phenotype=(annotation.phenotype.entity_id + " (" +
             annotation.phenotype.entity_name.replace(' ', '_') + ")"
-            if annotation.phenotype.entity_id else ""))
+            if annotation.phenotype.entity_id else "")))
         self.cur.execute(GET_MAX_ORDER_INVOLVED.substitute(joinkey=joinkey))
         res = self.cur.fetchone()
         max_order_involved = int(res[0]) if res[0] else 0
@@ -225,10 +226,10 @@ class DBManager(object):
                     sufficient="CHECKED" if "Sufficient" in anatomy_term.options else "",
                     necessary="CHECKED" if "Necessary" in anatomy_term.options else ""))
                 order_notinvolved += 1
-        for order in range(max_order_involved - order_involved):
+        for order in range(max_order_involved - order_involved + 1):
             self.cur.execute(INSERT_INVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
                                                                  sufficient="", necessary=""))
-        for order in range(max_order_notinvolved - order_notinvolved):
+        for order in range(max_order_notinvolved - order_notinvolved + 1):
             self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
                                                                     sufficient="", necessary=""))
         self.cur.execute(INSERT_REFERENCE_TEMPLATE.substitute(joinkey=joinkey, paper_id=annotation.evidence))
@@ -249,7 +250,7 @@ class DBManager(object):
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
                                                                remark="Author Statement \"" + author_statement + "\""))
             order_remarks += 1
-        for order in range(max_order_remark - order_remarks):
+        for order in range(max_order_remark - order_remarks + 1):
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), remark=""))
         self.cur.execute(INSERT_ASSAY_TEMPLATE.substitute(joinkey=joinkey, order="1", assay=annotation.assay))
 
@@ -303,17 +304,14 @@ class DBManager(object):
         self.cur.execute(QUERY_ANNOTATIONS_TEMPLATE.substitute(paper_id=paper_id))
         return [row[0] for row in self.cur.fetchall()]
 
-    def save_changes(self, annotations, paper_id):
-        existing_joinkeys = self._get_existing_joinkeys(paper_id)
-        annots_to_save = [Annotation.from_dict(annot) for annot in annotations]
-        joinkeys_to_keep = set()
+    def save_changes(self, add_or_mod_annotations, del_annotations):
+        annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         for annot in annots_to_save:
             if annot.annotation_id.startswith("existing"):
                 joinkey = annot.annotation_id.replace("existing", "")
-                joinkeys_to_keep.add(joinkey)
             else:
                 joinkey = self._get_new_joinkey()
             self._save_annotation(annot, joinkey)
         empty_annot = Annotation()
-        for joinkey_to_delete in set(existing_joinkeys) - joinkeys_to_keep:
-            self._save_annotation(empty_annot, joinkey_to_delete)
+        for del_annot in del_annotations:
+            self._save_annotation(empty_annot, del_annot["annotationId"].replace("existing", ""))
