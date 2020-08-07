@@ -221,7 +221,8 @@ const diffAnatomyFunctionAnnotations = (oldAnnotations, newAnnotations) => {
         }
     });
     oldAnnotations.forEach((oldAnnot) => {
-        if (!newAnnotations.some((newAnnot) => anatomyFnctAnnotationsAreEqual(oldAnnot, newAnnot))) {
+        if (!newAnnotations.some((newAnnot) => anatomyFnctAnnotationsAreEqual(oldAnnot, newAnnot)) &&
+            !diffAddOrMod.some((annotToMod) => {return annotToMod.annotationId === oldAnnot.annotationId})) {
             diffDel.push(oldAnnot);
         }
     });
