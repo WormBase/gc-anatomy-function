@@ -149,14 +149,11 @@ class DBManager(object):
             self.cur.execute(QUERY_INVOLVED_TEMPLATE.substitute(paper_id=wb_paper_id))
         rows = self.cur.fetchall()
         annot_involved = defaultdict(lambda: defaultdict(Entity))
-        processed_orders = set()
-        skip_joinkeys = set()
+        processed_cases = set()
         for row in rows:
-            if row[0] not in skip_joinkeys:
+            if (row[0], row[1], row[3]) not in processed_cases:
                 tissue_id = row[2].split(' ')[0] if row[2] else ''
-                if (row[0], row[1], row[3]) in processed_orders:
-                    skip_joinkeys.add(row[0])
-                processed_orders.add((row[0], row[1], row[3]))
+                processed_cases.add((row[0], row[1], row[3]))
                 if tissue_id:
                     annot_involved[row[0]][tissue_id].entity_id = tissue_id
                     annot_involved[row[0]][tissue_id].created_time = row[5]
@@ -171,13 +168,10 @@ class DBManager(object):
         self.cur.execute(QUERY_REMARK_TEMPLATE.substitute(paper_id=wb_paper_id))
         rows = self.cur.fetchall()
         annot_remarks = defaultdict(lambda: defaultdict(list))
-        processed_orders = set()
-        skip_joinkeys = set()
+        processed_cases = set()
         for row in rows:
-            if row[0] not in skip_joinkeys:
-                if (row[0], row[1]) in processed_orders:
-                    skip_joinkeys.add(row[0])
-                processed_orders.add((row[0], row[1]))
+            if (row[0], row[1]) not in processed_cases:
+                processed_cases.add((row[0], row[1]))
                 if row[2]:
                     if row[2].startswith("Genotype"):
                         annot_remarks[row[0]]["Genotypes"].append(row[2][9:][1:-1])
