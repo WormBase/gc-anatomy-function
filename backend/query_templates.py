@@ -47,6 +47,10 @@ QUERY_ANNOTATIONS_TEMPLATE = Template('SELECT joinkey, wbb_timestamp FROM wbb_wb
                                       'wbb_reference = \'WBPaper${paper_id}\')')
 
 
+QUERY_ALL_REFERENCES = Template('SELECT joinkey, wbb_reference, wbb_timestamp FROM wbb_reference where joinkey IN '
+                                '(SELECT joinkey FROM wbb_reference WHERE wbb_reference = \'WBPaper${paper_id}\')')
+
+
 GET_MAX_JOINKEY = 'SELECT max(joinkey::INTEGER) from wbb_wbbtf'
 
 

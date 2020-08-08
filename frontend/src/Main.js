@@ -13,6 +13,8 @@ import Modal from "react-bootstrap/Modal";
 import Table from "react-bootstrap/Table";
 import Badge from "react-bootstrap/Badge";
 import './Main.css';
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
+import Tooltip from "react-bootstrap/Tooltip";
 
 
 class Main extends React.Component {
@@ -165,10 +167,12 @@ class Main extends React.Component {
 
 class AnnotationTable extends React.Component {
     render() {
+
         return (
             <Table>
                 <thead>
                 <tr>
+                    <th>Annotation Id</th>
                     <th>Phenotype</th>
                     <th>Gene</th>
                     <th>Involved/Not involved</th>
@@ -182,14 +186,15 @@ class AnnotationTable extends React.Component {
                 </thead>
                 {this.props.annotations.map(a =>
                 <tr>
+                    <td>{a.annotationId.replace("existing", "").replace("notinvolved", "")}</td>
                     <td>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</td>
                     <td>{a.gene !== '' ? a.gene.value : ''}</td>
                     <td>{a.involved}</td>
                     <td>{a.anatomyTerms.map(a => <span><Badge variant="primary">{a.value + ' ' + Object.entries(a.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</Badge>&nbsp;</span>)}</td>
-                    <td dangerouslySetInnerHTML={{ __html: a.remarks.join('<br/><br/>')}}></td>
-                    <td dangerouslySetInnerHTML={{ __html: a.noctuamodels.join('<br/><br/>')}}></td>
-                    <td dangerouslySetInnerHTML={{ __html: a.genotypes.join('<br/><br/>')}}></td>
-                    <td dangerouslySetInnerHTML={{ __html: a.authorstatements.join('<br/><br/>')}}></td>
+                    <td><OverlayTrigger delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip"><p dangerouslySetInnerHTML={{ __html: a.remarks.join('<br/><br/>')}}/></Tooltip>}><p dangerouslySetInnerHTML={{ __html: a.remarks.join('<br/><br/>')}} style={{width: "100px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}/></OverlayTrigger></td>
+                    <td><p dangerouslySetInnerHTML={{ __html: a.noctuamodels.join('<br/><br/>')}}/></td>
+                    <td><p dangerouslySetInnerHTML={{ __html: a.genotypes.join('<br/><br/>')}}/></td>
+                    <td><p dangerouslySetInnerHTML={{ __html: a.authorstatements.join('<br/><br/>')}}/></td>
                     <td>{a.assay.value}</td>
                 </tr>
                 )}
@@ -210,6 +215,21 @@ const anatomyFnctAnnotationsAreEqual = (a1, a2) => {
         && a1.noctuamodels.every((r, idx) => {return r === a2.noctuamodels[idx]})
         && a1.authorstatements.every((r, idx) => {return r === a2.authorstatements[idx]}) && a1.assay.value === a2.assay.value
         && a1.evidence === a2.evidence && a1.dateAssigned === a2.dateAssigned;
+}
+
+const annotationDiffStatus = (oldAnnotations, newAnnotations) => {
+    let modifiedAnnotIds = []
+    let newIds = new Set([...newAnnotations.map(a => a.annotationId)]);
+    let oldIds = new Set([...newAnnotations.map(a => a.annotationId)]);
+    let deletedAnnotIds = [...(oldIds - newIds)];
+    let addedAnnotIds = [...(newIds - oldIds)];
+    newAnnotations.forEach((newAnnot) => {
+        if (!oldAnnotations.some((oldAnnot) => anatomyFnctAnnotationsAreEqual(newAnnot, oldAnnot))) {
+            modifiedAnnotIds.push(newAnnot.annotationId);
+        }
+    });
+    modifiedAnnotIds = [...(new Set(modifiedAnnotIds) - addedAnnotIds)];
+    return {modifiedIds: modifiedAnnotIds, newIds: newIds, deletedIds: deletedAnnotIds};
 }
 
 const diffAnatomyFunctionAnnotations = (oldAnnotations, newAnnotations) => {

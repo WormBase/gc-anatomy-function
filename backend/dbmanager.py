@@ -103,6 +103,11 @@ class DBManager(object):
             annotations[row[0]].annotation_id = row[0]
             annotations[row[0]].created_time = row[1]
             annotations[row[0]].evidence = 'WBPaper' + wb_paper_id
+        self.cur.execute(QUERY_ALL_REFERENCES.substitute(paper_id=wb_paper_id))
+        rows = self.cur.fetchall()
+        for row in rows:
+            if row[1] != ("WBPaper" + wb_paper_id) and row[0] in annotations and annotations[row[0]].created_time < row[2]:
+                del annotations[row[0]]
         return annotations
 
     def _extract_genes_data(self, wb_paper_id):
@@ -124,7 +129,7 @@ class DBManager(object):
         for row in rows:
             annot_phenotype[row[0]].entity_id = row[1].split(' ')[0] if row[1] else ''
             if row[1] and len(row[1].split(' ')) > 1:
-                annot_phenotype[row[0]].entity_name = row[1].split(' ')[1][1:-1].replace('_', ' ')
+                annot_phenotype[row[0]].entity_name = ' '.join(row[1].split(' ')[1:])[1:-1].replace('_', ' ')
             if row[2] in OPTIONS and row[3] and row[3] != '':
                 annot_phenotype[row[0]].options.add(row[2])
         return annot_phenotype
