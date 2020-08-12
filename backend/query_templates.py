@@ -73,12 +73,11 @@ INSERT_GENE_TEMPLATE = Template('INSERT INTO wbb_gene (joinkey, wbb_gene, wbb_ev
                                 '\'${gene_name}\'), (\'${joinkey}\', \'${gene}\', \'none\', \'\')')
 
 
-INSERT_PHENOTYPE_TEMPLATE = Template('INSERT INTO wbb_phenotype (joinkey, wbb_phenotype, wbb_evitype) '
-                                     'VALUES (\'${joinkey}\', \'${phenotype}\', '
-                                     '\'Autonomous\'), (\'${joinkey}\', \'${phenotype}\', '
-                                     '\'Nonautonomous\'), (\'${joinkey}\', \'${phenotype}\', '
-                                     '\'Remark\'), (\'${joinkey}\', \'${phenotype}\', '
-                                     '\'none\')')
+INSERT_PHENOTYPE_TEMPLATE = Template('INSERT INTO wbb_phenotype (joinkey, wbb_phenotype, wbb_evitype, wbb_evidence) '
+                                     'VALUES (\'${joinkey}\', \'${phenotype}\', \'Autonomous\', \'${autonomous}\'), '
+                                     '(\'${joinkey}\', \'${phenotype}\', \'Nonautonomous\', \'${nonautonomous}\'), '
+                                     '(\'${joinkey}\', \'${phenotype}\', \'Remark\', \'\'), '
+                                     '(\'${joinkey}\', \'${phenotype}\', \'none\', \'\')')
 
 
 INSERT_INVOLVED_TEMPLATE = Template('INSERT INTO wbb_involved (joinkey, wbb_order, wbb_involved, wbb_evitype, '

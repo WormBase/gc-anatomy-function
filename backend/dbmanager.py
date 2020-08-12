@@ -63,7 +63,10 @@ class Annotation(object):
         annot.annotation_id = annotation_dict["annotationId"]
         annot.phenotype.entity_id = annotation_dict["phenotype"]["modId"]
         annot.phenotype.entity_name = annotation_dict["phenotype"]["value"]
-        annot.gene = Entity(entity_id=annotation_dict["gene"]["modId"], entity_name=annotation_dict["gene"]["value"])
+        annot.phenotype.options = set([opt for opt, value in annotation_dict["phenotype"]["options"].items() if
+                                       value == 1])
+        annot.gene = Entity(entity_id=annotation_dict["gene"]["modId"] if annotation_dict["gene"] else '',
+                            entity_name=annotation_dict["gene"]["value"] if annotation_dict["gene"] else '')
         annot.involved_option = annotation_dict["involved"]
         annot.anatomy_terms = [Entity(entity_id=term["modId"], entity_name=term["value"],
                                       options=set([opt for opt, value in term["options"].items() if value == 1])) for
@@ -198,7 +201,9 @@ class DBManager(object):
         self.cur.execute(INSERT_PHENOTYPE_TEMPLATE.substitute(
             joinkey=joinkey, phenotype=(annotation.phenotype.entity_id + " (" +
             annotation.phenotype.entity_name.replace(' ', '_') + ")"
-            if annotation.phenotype.entity_id else "")))
+            if annotation.phenotype.entity_id else ""),
+            autonomous="CHECKED" if "Autonomous" in annotation.phenotype.options else "",
+            nonautonomous="CHECKED" if "Nonautonomous" in annotation.phenotype.options else ""))
         self.cur.execute(GET_MAX_ORDER_INVOLVED.substitute(joinkey=joinkey))
         res = self.cur.fetchone()
         max_order_involved = int(res[0]) if res[0] else 0
