@@ -93,6 +93,7 @@ class Main extends React.Component {
                                                showDiff: diffAnatomyFunctionAnnotations(this.props.annotations, annotations.anatomyFunction).numChanges > 0,
                                                showNoDiff: diffAnatomyFunctionAnnotations(this.props.annotations, annotations.anatomyFunction).numChanges === 0
                                            })}}
+                                           showAnnotationIds={true}
                                            evidence={"WBPaper" + this.state.evidence}
                                            autocompleteObj={new WBAutocomplete('http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/datatype_objects.cgi?action=autocompleteXHR&objectType=')}
                         />
@@ -141,14 +142,16 @@ class Main extends React.Component {
                                          onScroll={() => {
                                              this.table2Ref.current.scrollTop = this.table1Ref.current.scrollTop;
                                              this.table2Ref.current.scrollLeft = this.table1Ref.current.scrollLeft;
-                                         }}><AnnotationTable annotations={this.props.annotations} /></div>
+                                         }}><AnnotationTable annotations={this.props.annotations}
+                                                             annotationsDiffStatus={getAnnotationsDiffStatus(this.props.annotations, this.state.newAnnotations)} /></div>
                                 </Col>
                                 <Col sm={6}>
                                     <div ref={this.table2Ref} style={{height: "600px", width: "100%", overflow: 'scroll'}}
                                          onScroll={() => {
                                              this.table1Ref.current.scrollTop = this.table2Ref.current.scrollTop;
                                              this.table1Ref.current.scrollLeft = this.table2Ref.current.scrollLeft;
-                                         }}><AnnotationTable annotations={this.state.newAnnotations} /></div>
+                                         }}><AnnotationTable annotations={this.state.newAnnotations}
+                                                             annotationsDiffStatus={getAnnotationsDiffStatus(this.props.annotations, this.state.newAnnotations)} /></div>
                                 </Col>
                             </Row>
                         </Container>
@@ -184,19 +187,58 @@ class AnnotationTable extends React.Component {
                     <th>Assay</th>
                 </tr>
                 </thead>
-                {this.props.annotations.map(a =>
-                <tr>
-                    <td>{a.annotationId.replace("existing", "").replace("notinvolved", "")}</td>
-                    <td>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</td>
-                    <td>{a.gene !== '' ? a.gene.value : ''}</td>
-                    <td>{a.involved}</td>
-                    <td>{a.anatomyTerms.map(a => <span><Badge variant="primary">{a.value + ' ' + Object.entries(a.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</Badge>&nbsp;</span>)}</td>
-                    <td><OverlayTrigger delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip"><p dangerouslySetInnerHTML={{ __html: a.remarks.join('<br/><br/>')}}/></Tooltip>}><p dangerouslySetInnerHTML={{ __html: a.remarks.join('<br/><br/>')}} style={{width: "100px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}/></OverlayTrigger></td>
-                    <td><p dangerouslySetInnerHTML={{ __html: a.noctuamodels.join('<br/><br/>')}}/></td>
-                    <td><p dangerouslySetInnerHTML={{ __html: a.genotypes.join('<br/><br/>')}}/></td>
-                    <td><p dangerouslySetInnerHTML={{ __html: a.authorstatements.join('<br/><br/>')}}/></td>
-                    <td>{a.assay.value}</td>
-                </tr>
+                {this.props.annotations.map(a => {
+                    let rowClass = '';
+                    if (this.props.annotationsDiffStatus.newIds.has(a.annotationId)) {
+                        rowClass = 'addedAnnotationRow';
+                    } else if (this.props.annotationsDiffStatus.deletedIds.has(a.annotationId)) {
+                        rowClass = 'deletedAnnotationRow';
+                    } else if (this.props.annotationsDiffStatus.modifiedIds.has(a.annotationId)) {
+                        rowClass = 'modifiedAnnotationRow';
+                    }
+                    return (
+                        <tr className={rowClass}>
+                            <td>{a.annotationId.replace("existing", "").replace("notinvolved", "")}</td>
+                            <td>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</td>
+                            <td>{a.gene !== '' ? a.gene.value : ''}</td>
+                            <td>{a.involved}</td>
+                            <td>{a.anatomyTerms.map(a => <span><Badge
+                                variant="primary">{a.value + ' ' + Object.entries(a.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</Badge>&nbsp;</span>)}</td>
+                            <td><OverlayTrigger delay={{show: 250, hide: 400}} overlay={<Tooltip id="button-tooltip"><p
+                                dangerouslySetInnerHTML={{__html: a.remarks.join('<br/><br/>')}}/></Tooltip>}><p
+                                dangerouslySetInnerHTML={{__html: a.remarks.join('<br/><br/>')}} style={{
+                                width: "100px",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis"
+                            }}/></OverlayTrigger></td>
+                            <td><OverlayTrigger delay={{show: 250, hide: 400}} overlay={<Tooltip id="button-tooltip"><p
+                                dangerouslySetInnerHTML={{__html: a.noctuamodels.join('<br/><br/>')}}/></Tooltip>}><p
+                                dangerouslySetInnerHTML={{__html: a.noctuamodels.join('<br/><br/>')}} style={{
+                                width: "100px",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis"
+                            }}/></OverlayTrigger></td>
+                            <td><OverlayTrigger delay={{show: 250, hide: 400}} overlay={<Tooltip id="button-tooltip"><p
+                                dangerouslySetInnerHTML={{__html: a.genotypes.join('<br/><br/>')}}/></Tooltip>}><p
+                                dangerouslySetInnerHTML={{__html: a.genotypes.join('<br/><br/>')}} style={{
+                                width: "100px",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis"
+                            }}/></OverlayTrigger></td>
+                            <td><OverlayTrigger delay={{show: 250, hide: 400}} overlay={<Tooltip id="button-tooltip"><p
+                                dangerouslySetInnerHTML={{__html: a.authorstatements.join('<br/><br/>')}}/></Tooltip>}><p
+                                dangerouslySetInnerHTML={{__html: a.authorstatements.join('<br/><br/>')}} style={{
+                                width: "100px",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                textOverflow: "ellipsis"
+                            }}/></OverlayTrigger></td>
+                            <td>{a.assay.value}</td>
+                        </tr>);
+                    }
                 )}
             </Table>
         );
@@ -217,19 +259,23 @@ const anatomyFnctAnnotationsAreEqual = (a1, a2) => {
         && a1.evidence === a2.evidence && a1.dateAssigned === a2.dateAssigned;
 }
 
-const annotationDiffStatus = (oldAnnotations, newAnnotations) => {
-    let modifiedAnnotIds = []
-    let newIds = new Set([...newAnnotations.map(a => a.annotationId)]);
-    let oldIds = new Set([...newAnnotations.map(a => a.annotationId)]);
-    let deletedAnnotIds = [...(oldIds - newIds)];
-    let addedAnnotIds = [...(newIds - oldIds)];
-    newAnnotations.forEach((newAnnot) => {
-        if (!oldAnnotations.some((oldAnnot) => anatomyFnctAnnotationsAreEqual(newAnnot, oldAnnot))) {
-            modifiedAnnotIds.push(newAnnot.annotationId);
-        }
-    });
-    modifiedAnnotIds = [...(new Set(modifiedAnnotIds) - addedAnnotIds)];
-    return {modifiedIds: modifiedAnnotIds, newIds: newIds, deletedIds: deletedAnnotIds};
+const getAnnotationsDiffStatus = (oldAnnotations, newAnnotations) => {
+    let modifiedAnnotIds = new Set();
+    let deletedAnnotIds = new Set();
+    let addedAnnotIds = new Set();
+    if (oldAnnotations !== undefined && newAnnotations !== undefined) {
+        let newIds = new Set([...newAnnotations.map(a => a.annotationId)]);
+        let oldIds = new Set([...oldAnnotations.map(a => a.annotationId)]);
+        deletedAnnotIds = new Set([...oldIds].filter(x => !newIds.has(x)))
+        addedAnnotIds = new Set([...newIds].filter(x => !oldIds.has(x)));
+        newAnnotations.forEach((newAnnot) => {
+            if (!oldAnnotations.some((oldAnnot) => anatomyFnctAnnotationsAreEqual(newAnnot, oldAnnot))) {
+                modifiedAnnotIds.add(newAnnot.annotationId);
+            }
+        });
+        modifiedAnnotIds = new Set([...modifiedAnnotIds].filter(x => !addedAnnotIds.has(x)));
+    }
+    return {modifiedIds: modifiedAnnotIds, newIds: addedAnnotIds, deletedIds: deletedAnnotIds};
 }
 
 const diffAnatomyFunctionAnnotations = (oldAnnotations, newAnnotations) => {

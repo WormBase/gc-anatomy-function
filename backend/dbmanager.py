@@ -37,7 +37,7 @@ class Annotation(object):
     evidence: str = ''
 
     def to_dict(self):
-        return {"annotationId": 'existing' + self.annotation_id,
+        return {"annotationId": self.annotation_id,
                 "phenotype": {"value": self.phenotype.entity_name,
                               "modId": self.phenotype.entity_id,
                               "options": {option: (1 if option in self.phenotype.options else 0) for option in OPTIONS}
@@ -291,7 +291,17 @@ class DBManager(object):
         for annotation in res_annotations:
             if not annotation.gene.entity_name:
                 annotation.gene.entity_name = self.get_gene_name_from_id(annotation.gene.entity_id)
+            for anatomy_term in annotation.anatomy_terms:
+                if not anatomy_term.entity_name:
+                    anatomy_term.entity_name = self.get_anatomy_term_name_from_id(anatomy_term.entity_id)
         return [annot.to_dict() for annot in res_annotations]
+
+    def get_anatomy_term_name_from_id(self, term_id):
+        if term_id:
+            self.cur.execute(QUERY_GENE_NAME_TEMPLATE.substitute(term_id=term_id))
+            return self.cur.fetchone()[0]
+        else:
+            return ''
 
     def get_gene_name_from_id(self, gene_id):
         if gene_id:
@@ -307,11 +317,11 @@ class DBManager(object):
     def save_changes(self, add_or_mod_annotations, del_annotations):
         annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         for annot in annots_to_save:
-            if annot.annotation_id.startswith("existing"):
-                joinkey = annot.annotation_id.replace("existing", "").replace("notinvolved", "")
+            if len(annot.annotation_id) < 10:
+                joinkey = annot.annotation_id.replace("notinvolved", "")
             else:
                 joinkey = self._get_new_joinkey()
             self._save_annotation(annot, joinkey)
         empty_annot = Annotation()
         for del_annot in del_annotations:
-            self._save_annotation(empty_annot, del_annot["annotationId"].replace("existing", "").replace("notinvolved", ""))
+            self._save_annotation(empty_annot, del_annot["annotationId"].replace("notinvolved", ""))

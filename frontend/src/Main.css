@@ -1,5 +1,17 @@
 .your-dialog-classname {
-    width: 90%;
+    width: 95%;
     max-width: 3000px;
     min-width: 1000px;
+}
+
+.addedAnnotationRow {
+    background-color: lightgreen;
+}
+
+.deletedAnnotationRow {
+    background-color: indianred;
+}
+
+.modifiedAnnotationRow {
+    background-color: yellow;
 }

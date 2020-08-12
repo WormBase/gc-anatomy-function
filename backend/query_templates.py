@@ -42,6 +42,10 @@ QUERY_GENE_NAME_TEMPLATE = Template('SELECT gin_locus FROM gin_locus JOIN gin_wb
                                     'ON gin_locus.joinkey = gin_wbgene.joinkey WHERE gin_wbgene = \'${gene_id}\'')
 
 
+QUERY_ANATOMYTERM_NAME_TEMPLATE = Template('SELECT obo_name_anatomy FROM obo_name_anatomy '
+                                           'WHERE joinkey = \'${term_id}\'')
+
+
 QUERY_ANNOTATIONS_TEMPLATE = Template('SELECT joinkey, wbb_timestamp FROM wbb_wbbtf '
                                       'WHERE joinkey IN (SELECT joinkey from wbb_reference WHERE '
                                       'wbb_reference = \'WBPaper${paper_id}\')')
