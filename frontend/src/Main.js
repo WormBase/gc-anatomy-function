@@ -34,6 +34,8 @@ class Main extends React.Component {
         if (this.props.message !== prevProps.message) {
             if (this.props.message === null) {
                 this.setState({showDiff: false});
+            } else if (this.props.message === "Annotations saved") {
+                this.props.loadPaper(this.state.paperId);
             }
         }
     }

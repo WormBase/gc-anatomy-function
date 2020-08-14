@@ -240,19 +240,19 @@ class DBManager(object):
         order_remarks = 1
         for general_remark in annotation.remarks:
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
-                                                               remark=general_remark))
+                                                               remark=general_remark.replace('\n', ' ')))
             order_remarks += 1
         for genotype_remark in annotation.genotypes:
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
-                                                               remark="Genotype \"" + genotype_remark + "\""))
+                                                               remark="Genotype \"" + genotype_remark.replace('\n', ' ') + "\""))
             order_remarks += 1
         for noctuamodel_remark in annotation.noctuamodels:
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
-                                                               remark="Noctua Model \"" + noctuamodel_remark + "\""))
+                                                               remark="Noctua Model \"" + noctuamodel_remark.replace('\n', ' ') + "\""))
             order_remarks += 1
         for author_statement in annotation.authorstatements:
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
-                                                               remark="Author Statement \"" + author_statement + "\""))
+                                                               remark="Author Statement \"" + author_statement.replace('\n', ' ') + "\""))
             order_remarks += 1
         for order in range(max_order_remark - order_remarks + 1):
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), remark=""))
