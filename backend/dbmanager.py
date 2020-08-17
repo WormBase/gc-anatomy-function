@@ -288,7 +288,7 @@ class DBManager(object):
         for joinkey, notinvolved_tissues in self._extract_involved_tissues(wb_paper_id, not_involved=True).items():
             if joinkey in annotations_dict:
                 annotations_notinvolved_dict[joinkey] = copy(annotations_dict[joinkey])
-                annotations_notinvolved_dict[joinkey].annotation_id = annotations_notinvolved_dict[joinkey].annotation_id + "notinvolved"
+                annotations_notinvolved_dict[joinkey].annotation_id = annotations_notinvolved_dict[joinkey].annotation_id + " notinvolved"
                 annotations_notinvolved_dict[joinkey].involved_option = 'not_involved'
                 annotations_notinvolved_dict[joinkey].anatomy_terms = list(notinvolved_tissues.values())
         res_annotations = list(annotations_involved_dict.values())
@@ -323,10 +323,10 @@ class DBManager(object):
         annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         for annot in annots_to_save:
             if len(annot.annotation_id) < 10:
-                joinkey = annot.annotation_id.replace("notinvolved", "")
+                joinkey = annot.annotation_id.replace(" notinvolved", "")
             else:
                 joinkey = self._get_new_joinkey()
             self._save_annotation(annot, joinkey)
         empty_annot = Annotation()
         for del_annot in del_annotations:
-            self._save_annotation(empty_annot, del_annot["annotationId"].replace("notinvolved", ""))
+            self._save_annotation(empty_annot, del_annot["annotationId"].replace(" notinvolved", ""))
