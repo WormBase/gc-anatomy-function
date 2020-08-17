@@ -9,6 +9,9 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 import {diffAnatomyFunctionAnnotations, getAnnotationsDiffStatus} from "../utils";
 import Badge from "react-bootstrap/Badge";
+import {saveAnnotations} from "../redux/actions";
+import {connect} from "react-redux";
+import {getNewAnnotations, getOldAnnotations, getSaveStatus} from "../redux/selectors";
 
 class ReviewChanges extends React.Component {
 
@@ -140,4 +143,10 @@ class AnnotationTable extends React.Component {
     }
 }
 
-export default ReviewChanges;
+const mapStateToProps = state => ({
+    newAnnotations: getNewAnnotations(state),
+    oldAnnotations: getOldAnnotations(state),
+    saveStatus: getSaveStatus(state)
+});
+
+export default connect(mapStateToProps, {saveAnnotations})(ReviewChanges);

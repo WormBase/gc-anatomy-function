@@ -6,7 +6,9 @@ export const LOAD_PAPER_ERROR = "LOAD_PAPER_ERROR";
 export const SAVE_REQUEST = "SAVE_REQUEST";
 export const SAVE_SUCCESS = "SAVE_SUCCESS";
 export const SAVE_ERROR = "SAVE_ERROR";
-export const DISMISS_MESSAGE = "DISMISS_MESSAGE";
+export const RESET_LOAD_STATUS = "RESET_LOAD_STATUS";
+export const RESET_SAVE_STATUS = "RESET_SAVE_STATUS";
+export const SET_NEW_ANNOTATIONS = "SET_NEW_ANNOTATIONS";
 
 
 export const loadPaper = paperId => {
@@ -76,6 +78,15 @@ export const saveError = error => ({
     payload: { error }
 });
 
-export const dismissMessage = () => ({
-    type: DISMISS_MESSAGE
+export const resetLoadStatus = () => ({
+    type: RESET_LOAD_STATUS
 });
+
+export const resetSaveStatus = () => ({
+    type: RESET_SAVE_STATUS
+});
+
+export const setNewAnnotations = newAnnotations => ({
+    type: SET_NEW_ANNOTATIONS,
+    payload: {annotations: newAnnotations}
+})

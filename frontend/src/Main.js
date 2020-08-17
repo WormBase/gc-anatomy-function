@@ -5,9 +5,9 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import {getAnnotations, getMessage, isLoading} from "./redux/selectors";
+import {getLoadStatus, getNewAnnotations, getOldAnnotations, getSaveStatus, isLoading} from "./redux/selectors";
 import {connect} from "react-redux";
-import {dismissMessage, loadPaper, saveAnnotations} from "./redux/actions";
+import {loadPaper, resetSaveStatus, saveAnnotations, setNewAnnotations} from "./redux/actions";
 import {WBAutocomplete} from "@wormbase/graphical-curation/lib/autocomplete.js"
 import Modal from "react-bootstrap/Modal";
 import './Main.css';
@@ -23,16 +23,6 @@ class Main extends React.Component {
             evidence: undefined,
             showDiff: false,
             showNoDiff: false,
-        }
-    }
-
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        if (this.props.message !== prevProps.message) {
-            if (this.props.message === null) {
-                this.setState({showDiff: false});
-            } else if (this.props.message === "Annotations saved") {
-                this.props.loadPaper(this.state.paperId);
-            }
         }
     }
 
@@ -86,11 +76,14 @@ class Main extends React.Component {
                         <GraphicalCuration error={this.props.error} showExpressionCuration={false} showPhenotypeCuration={false}
                                            entities={entities}
                                            anatomyFunctionAnnotations={this.props.annotations}
-                                           annotationsSaved={annotations => {this.setState({
-                                               newAnnotations: annotations.anatomyFunction,
-                                               showDiff: diffAnatomyFunctionAnnotations(this.props.annotations, annotations.anatomyFunction).numChanges > 0,
-                                               showNoDiff: diffAnatomyFunctionAnnotations(this.props.annotations, annotations.anatomyFunction).numChanges === 0
-                                           })}}
+                                           annotationsSaved={annotations => {
+                                               let diff = diffAnatomyFunctionAnnotations(this.props.oldAnnotations, annotations.anatomyFunction);
+                                               this.setState({
+                                                   showDiff: diff.numChanges > 0,
+                                                   showNoDiff: diff.numChanges === 0
+                                               });
+                                               this.props.setNewAnnotations(annotations.anatomyFunction)
+                                           }}
                                            showAnnotationIds={true}
                                            evidence={"WBPaper" + this.state.evidence}
                                            autocompleteObj={new WBAutocomplete('http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/datatype_objects.cgi?action=autocompleteXHR&objectType=')}
@@ -98,19 +91,20 @@ class Main extends React.Component {
                         : ''}
                     </Col>
                 </Row>
-                <Modal show={this.props.message !== null} onHide={this.props.dismissMessage} centered>
+                <Modal show={this.props.saveStatus !== null} onHide={this.props.resetSaveStatus} centered>
                     <Modal.Header closeButton>
                         <Modal.Title id="contained-modal-title-vcenter">
-                            {this.props.message === "Annotations saved" ? "Success": "Error"}
+                            {this.props.saveStatus === "Success" ? "Success": "Error"}
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        {this.props.message}
+                        {this.props.saveStatus === "Success" ? "Annotations Saved to DB" : this.props.saveStatus}
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={this.props.dismissMessage}>Close</Button>
+                        <Button variant="secondary" onClick={this.props.resetSaveStatus}>Close</Button>
                     </Modal.Footer>
-                </Modal><Modal show={this.state.showNoDiff} onHide={() => this.setState({showNoDiff: false})} centered>
+                </Modal>
+                <Modal show={this.state.showNoDiff} onHide={() => this.setState({showNoDiff: false})} centered>
                     <Modal.Header closeButton>
                         <Modal.Title id="contained-modal-title-vcenter">
                             Warning
@@ -123,16 +117,18 @@ class Main extends React.Component {
                         <Button variant="secondary" onClick={() => this.setState({showNoDiff: false})}>Close</Button>
                     </Modal.Footer>
                 </Modal>
-                <ReviewChanges show={this.state.showDiff} onHide={this.setState({showDiff: false})} oldAnnotations={this.props.oldAnnotations} newAnnotations={this.state.newAnnotations} saveAnnotations={this.props.saveAnnotations}/>
+                <ReviewChanges show={this.state.showDiff} onHide={() => this.setState({showDiff: false})}/>
             </Container>
         );
     }
 }
 
 const mapStateToProps = state => ({
-    annotations: getAnnotations(state),
+    newAnnotations: getNewAnnotations(state),
+    oldAnnotations: getOldAnnotations(state),
     isLoading: isLoading(state),
-    message: getMessage(state)
+    loadStatus: getLoadStatus(state),
+    saveStatus: getSaveStatus(state)
 });
 
-export default connect(mapStateToProps, {loadPaper, dismissMessage, saveAnnotations})(Main);
+export default connect(mapStateToProps, {loadPaper, saveAnnotations, setNewAnnotations, resetSaveStatus})(Main);
