@@ -227,15 +227,15 @@ class DBManager(object):
                 self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(
                     joinkey=joinkey, order=str(order_notinvolved), term=anatomy_term.entity_id + " (" +
                                                                         anatomy_term.entity_name + ")",
-                    sufficient="CHECKED" if "Sufficient" in anatomy_term.options else "",
-                    necessary="CHECKED" if "Necessary" in anatomy_term.options else ""))
+                    insufficient="CHECKED" if "Insufficient" in anatomy_term.options else "",
+                    unnecessary="CHECKED" if "Unnecessary" in anatomy_term.options else ""))
                 order_notinvolved += 1
         for order in range(max_order_involved - order_involved + 1):
             self.cur.execute(INSERT_INVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
                                                                  sufficient="", necessary=""))
         for order in range(max_order_notinvolved - order_notinvolved + 1):
             self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
-                                                                    sufficient="", necessary=""))
+                                                                    insufficient="", unnecessary=""))
         self.cur.execute(INSERT_REFERENCE_TEMPLATE.substitute(joinkey=joinkey, paper_id=annotation.evidence))
         order_remarks = 1
         for general_remark in annotation.remarks:
@@ -288,7 +288,7 @@ class DBManager(object):
         for joinkey, notinvolved_tissues in self._extract_involved_tissues(wb_paper_id, not_involved=True).items():
             if joinkey in annotations_dict:
                 annotations_notinvolved_dict[joinkey] = copy(annotations_dict[joinkey])
-                annotations_notinvolved_dict[joinkey].annotation_id = annotations_notinvolved_dict[joinkey].annotation_id + "notinvolved"
+                annotations_notinvolved_dict[joinkey].annotation_id = annotations_notinvolved_dict[joinkey].annotation_id + " notinvolved"
                 annotations_notinvolved_dict[joinkey].involved_option = 'not_involved'
                 annotations_notinvolved_dict[joinkey].anatomy_terms = list(notinvolved_tissues.values())
         res_annotations = list(annotations_involved_dict.values())
@@ -323,10 +323,10 @@ class DBManager(object):
         annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         for annot in annots_to_save:
             if len(annot.annotation_id) < 10:
-                joinkey = annot.annotation_id.replace("notinvolved", "")
+                joinkey = annot.annotation_id.replace(" notinvolved", "")
             else:
                 joinkey = self._get_new_joinkey()
             self._save_annotation(annot, joinkey)
         empty_annot = Annotation()
         for del_annot in del_annotations:
-            self._save_annotation(empty_annot, del_annot["annotationId"].replace("notinvolved", ""))
+            self._save_annotation(empty_annot, del_annot["annotationId"].replace(" notinvolved", ""))

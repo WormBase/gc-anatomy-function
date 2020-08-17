@@ -89,12 +89,11 @@ INSERT_INVOLVED_TEMPLATE = Template('INSERT INTO wbb_involved (joinkey, wbb_orde
 
 
 INSERT_NOTINVOLVED_TEMPLATE = Template('INSERT INTO wbb_notinvolved (joinkey, wbb_order, wbb_notinvolved, wbb_evitype, '
-                                       'wbb_evidence) VALUES (\'${joinkey}\', \'${order}\', \'${term_id} '
-                                       '(${term_name})\', \'Inufficient\', \'${insufficient}\'), (\'${joinkey}\', '
-                                       '\'${order}\', \'${term_id} (${term_name})\', \'Unnecessary\', '
-                                       '\'${unnecessary}\'), (\'${joinkey}\', \'${order}\', \'${term_id} '
-                                       '(${term_name})\', \'Remark\', \'\'), (\'${joinkey}\', \'${order}\', '
-                                       '\'${term_id} (${term_name})\', \'none\', \'\')')
+                                       'wbb_evidence) VALUES (\'${joinkey}\', \'${order}\', \'${term}\', '
+                                       '\'Inufficient\', \'${insufficient}\'), (\'${joinkey}\', \'${order}\', '
+                                       '\'${term}\', \'Unnecessary\', \'${unnecessary}\'), (\'${joinkey}\', '
+                                       '\'${order}\', \'${term}\', \'Remark\', \'\'), (\'${joinkey}\', \'${order}\', '
+                                       '\'${term}\', \'none\', \'\')')
 
 
 INSERT_ASSAY_TEMPLATE = Template('INSERT INTO wbb_assay (joinkey, wbb_order, wbb_assay) '
