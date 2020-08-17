@@ -227,15 +227,15 @@ class DBManager(object):
                 self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(
                     joinkey=joinkey, order=str(order_notinvolved), term=anatomy_term.entity_id + " (" +
                                                                         anatomy_term.entity_name + ")",
-                    sufficient="CHECKED" if "Sufficient" in anatomy_term.options else "",
-                    necessary="CHECKED" if "Necessary" in anatomy_term.options else ""))
+                    insufficient="CHECKED" if "Insufficient" in anatomy_term.options else "",
+                    unnecessary="CHECKED" if "Unnecessary" in anatomy_term.options else ""))
                 order_notinvolved += 1
         for order in range(max_order_involved - order_involved + 1):
             self.cur.execute(INSERT_INVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
                                                                  sufficient="", necessary=""))
         for order in range(max_order_notinvolved - order_notinvolved + 1):
             self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
-                                                                    sufficient="", necessary=""))
+                                                                    insufficient="", unnecessary=""))
         self.cur.execute(INSERT_REFERENCE_TEMPLATE.substitute(joinkey=joinkey, paper_id=annotation.evidence))
         order_remarks = 1
         for general_remark in annotation.remarks:
