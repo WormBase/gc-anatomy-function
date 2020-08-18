@@ -303,7 +303,7 @@ class DBManager(object):
 
     def get_anatomy_term_name_from_id(self, term_id):
         if term_id:
-            self.cur.execute(QUERY_GENE_NAME_TEMPLATE.substitute(term_id=term_id))
+            self.cur.execute(QUERY_ANATOMYTERM_NAME_TEMPLATE.substitute(term_id=term_id))
             return self.cur.fetchone()[0]
         else:
             return ''
