@@ -322,6 +322,11 @@ class DBManager(object):
     def save_changes(self, add_or_mod_annotations, del_annotations):
         annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         for annot in annots_to_save:
+            if annot.phenotype.entity_id and not annot.phenotype.entity_id.startswith("WBPhenotype:"):
+                annot.phenotype.entity_id = annot.phenotype.entity_id.replace("WBPhenotype", "WBPhenotype:")
+            for anatomy_term in annot.anatomy_terms:
+                if anatomy_term.entity_id and not anatomy_term.entity_id.startswith("WBbt:"):
+                    anatomy_term.entity_id = anatomy_term.entity_id.replace("WBbt", "WBbt:")
             if len(annot.annotation_id) < 10:
                 joinkey = annot.annotation_id.replace(" notinvolved", "")
             else:
