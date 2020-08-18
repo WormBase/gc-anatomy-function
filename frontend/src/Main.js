@@ -75,7 +75,7 @@ class Main extends React.Component {
                         {this.state.evidence !== undefined ?
                         <GraphicalCuration error={this.props.error} showExpressionCuration={false} showPhenotypeCuration={false}
                                            entities={entities}
-                                           anatomyFunctionAnnotations={this.props.annotations}
+                                           anatomyFunctionAnnotations={this.props.newAnnotations}
                                            annotationsSaved={annotations => {
                                                let diff = diffAnatomyFunctionAnnotations(this.props.oldAnnotations, annotations.anatomyFunction);
                                                this.setState({
@@ -91,7 +91,12 @@ class Main extends React.Component {
                         : ''}
                     </Col>
                 </Row>
-                <Modal show={this.props.saveStatus !== null} onHide={this.props.resetSaveStatus} centered>
+                <Modal show={this.props.saveStatus !== null} onHide={() => {
+                    this.props.resetSaveStatus();
+                    if (this.props.saveStatus === "Success") {
+                        this.setState({showDiff: false});
+                    }
+                }} centered>
                     <Modal.Header closeButton>
                         <Modal.Title id="contained-modal-title-vcenter">
                             {this.props.saveStatus === "Success" ? "Success": "Error"}
