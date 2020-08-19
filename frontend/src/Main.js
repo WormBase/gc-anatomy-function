@@ -26,6 +26,12 @@ class Main extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (this.props.saveStatus !== prevProps.saveStatus && this.props.saveStatus === "Success") {
+            this.setState({showDiff: false});
+        }
+    }
+
     render() {
 
         const entities = {
