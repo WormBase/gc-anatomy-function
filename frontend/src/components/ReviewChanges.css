@@ -1,0 +1,11 @@
+.addedAnnotationRow {
+    background-color: lightgreen;
+}
+
+.deletedAnnotationRow {
+    background-color: indianred;
+}
+
+.modifiedAnnotationRow {
+    background-color: yellow;
+}

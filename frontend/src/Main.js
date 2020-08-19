@@ -7,7 +7,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {getLoadStatus, getNewAnnotations, getOldAnnotations, getSaveStatus, isLoading} from "./redux/selectors";
 import {connect} from "react-redux";
-import {loadPaper, resetSaveStatus, saveAnnotations, setNewAnnotations} from "./redux/actions";
+import {loadPaper, resetLoadStatus, resetSaveStatus, saveAnnotations, setNewAnnotations} from "./redux/actions";
 import {WBAutocomplete} from "@wormbase/graphical-curation/lib/autocomplete.js"
 import Modal from "react-bootstrap/Modal";
 import './Main.css';
@@ -109,6 +109,20 @@ class Main extends React.Component {
                         <Button variant="secondary" onClick={this.props.resetSaveStatus}>Close</Button>
                     </Modal.Footer>
                 </Modal>
+                <Modal show={this.props.loadStatus !== null && this.props.loadStatus !== "Success"}
+                       onHide={() => this.props.resetLoadStatus()} centered>
+                    <Modal.Header closeButton>
+                        <Modal.Title id="contained-modal-title-vcenter">
+                            {this.props.loadStatus === "Success" ? "Success": "Error"}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {this.props.loadStatus === "Success" ? "Annotations loaded from DB" : this.props.loadStatus}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={this.props.resetLoadStatus}>Close</Button>
+                    </Modal.Footer>
+                </Modal>
                 <Modal show={this.state.showNoDiff} onHide={() => this.setState({showNoDiff: false})} centered>
                     <Modal.Header closeButton>
                         <Modal.Title id="contained-modal-title-vcenter">
@@ -136,4 +150,4 @@ const mapStateToProps = state => ({
     saveStatus: getSaveStatus(state)
 });
 
-export default connect(mapStateToProps, {loadPaper, saveAnnotations, setNewAnnotations, resetSaveStatus})(Main);
+export default connect(mapStateToProps, {loadPaper, saveAnnotations, setNewAnnotations, resetSaveStatus, resetLoadStatus})(Main);
