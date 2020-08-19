@@ -90,7 +90,7 @@ INSERT_INVOLVED_TEMPLATE = Template('INSERT INTO wbb_involved (joinkey, wbb_orde
 
 INSERT_NOTINVOLVED_TEMPLATE = Template('INSERT INTO wbb_notinvolved (joinkey, wbb_order, wbb_notinvolved, wbb_evitype, '
                                        'wbb_evidence) VALUES (\'${joinkey}\', \'${order}\', \'${term}\', '
-                                       '\'Inufficient\', \'${insufficient}\'), (\'${joinkey}\', \'${order}\', '
+                                       '\'Insufficient\', \'${insufficient}\'), (\'${joinkey}\', \'${order}\', '
                                        '\'${term}\', \'Unnecessary\', \'${unnecessary}\'), (\'${joinkey}\', '
                                        '\'${order}\', \'${term}\', \'Remark\', \'\'), (\'${joinkey}\', \'${order}\', '
                                        '\'${term}\', \'none\', \'\')')

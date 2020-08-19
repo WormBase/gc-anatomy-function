@@ -230,12 +230,16 @@ class DBManager(object):
                     insufficient="CHECKED" if "Insufficient" in anatomy_term.options else "",
                     unnecessary="CHECKED" if "Unnecessary" in anatomy_term.options else ""))
                 order_notinvolved += 1
-        for order in range(max_order_involved - order_involved + 1):
-            self.cur.execute(INSERT_INVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
-                                                                 sufficient="", necessary=""))
-        for order in range(max_order_notinvolved - order_notinvolved + 1):
-            self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), term="",
-                                                                    insufficient="", unnecessary=""))
+        if annotation.involved_option == 'not_involved' and not annotation.annotation_id.endswith('notinvolved') or \
+                annotation.involved_option == 'involved':
+            for order in range(order_involved, max_order_involved + 1):
+                self.cur.execute(INSERT_INVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order), term="",
+                                                                     sufficient="", necessary=""))
+        if annotation.involved_option == 'involved' and annotation.annotation_id.endswith('notinvolved') or \
+                annotation.involved_option == 'not_involved':
+            for order in range(order_notinvolved, max_order_notinvolved + 1):
+                self.cur.execute(INSERT_NOTINVOLVED_TEMPLATE.substitute(joinkey=joinkey, order=str(order), term="",
+                                                                        insufficient="", unnecessary=""))
         self.cur.execute(INSERT_REFERENCE_TEMPLATE.substitute(joinkey=joinkey, paper_id=annotation.evidence))
         order_remarks = 1
         for general_remark in annotation.remarks:
@@ -254,8 +258,8 @@ class DBManager(object):
             self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order_remarks),
                                                                remark="Author Statement \"" + author_statement.replace('\n', ' ') + "\""))
             order_remarks += 1
-        for order in range(max_order_remark - order_remarks + 1):
-            self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order + 1), remark=""))
+        for order in range(order_remarks + 1, max_order_remark + 1):
+            self.cur.execute(INSERT_REMARK_TEMPLATE.substitute(joinkey=joinkey, order=str(order), remark=""))
         self.cur.execute(INSERT_ASSAY_TEMPLATE.substitute(joinkey=joinkey, order="1", assay=annotation.assay))
 
     def get_anatomy_function_annotations(self, wb_paper_id):
@@ -333,14 +337,14 @@ class DBManager(object):
             annot.authorstatements = [remark.replace('\'', '\'\'') for remark in annot.authorstatements]
 
     def save_changes(self, add_or_mod_annotations, del_annotations):
+        empty_annot = Annotation()
+        for del_annot in del_annotations:
+            self._save_annotation(empty_annot, del_annot["annotationId"].replace(" notinvolved", ""))
         annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
         self._transform_annotations_for_db(annots_to_save)
         for annot in annots_to_save:
-            if len(annot.annotation_id) < 10:
+            if len(annot.annotation_id) < 10 or annot.annotation_id.endswith(" notinvolved"):
                 joinkey = annot.annotation_id.replace(" notinvolved", "")
             else:
                 joinkey = self._get_new_joinkey()
             self._save_annotation(annot, joinkey)
-        empty_annot = Annotation()
-        for del_annot in del_annotations:
-            self._save_annotation(empty_annot, del_annot["annotationId"].replace(" notinvolved", ""))
