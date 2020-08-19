@@ -12,7 +12,7 @@ import {WBAutocomplete} from "@wormbase/graphical-curation/lib/autocomplete.js"
 import Modal from "react-bootstrap/Modal";
 import './Main.css';
 import ReviewChanges from "./components/ReviewChanges";
-import {diffAnatomyFunctionAnnotations} from "./utils";
+import {getAnnotationDiff} from "./utils";
 
 
 class Main extends React.Component {
@@ -85,10 +85,10 @@ class Main extends React.Component {
                                            entities={entities}
                                            anatomyFunctionAnnotations={this.props.newAnnotations}
                                            annotationsSaved={annotations => {
-                                               let diff = diffAnatomyFunctionAnnotations(this.props.oldAnnotations, annotations.anatomyFunction);
+                                               let diff = getAnnotationDiff(this.props.oldAnnotations, annotations.anatomyFunction);
                                                this.setState({
-                                                   showDiff: diff.numChanges > 0,
-                                                   showNoDiff: diff.numChanges === 0
+                                                   showDiff: (diff.newIds.size + diff.modifiedIds.size + diff.deletedIds.size) > 0,
+                                                   showNoDiff: (diff.newIds.size + diff.modifiedIds.size + diff.deletedIds.size) === 0
                                                });
                                                this.props.setNewAnnotations(annotations.anatomyFunction)
                                            }}

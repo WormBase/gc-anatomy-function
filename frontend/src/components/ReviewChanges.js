@@ -4,7 +4,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
-import {diffAnatomyFunctionAnnotations, getAnnotationsDiffStatus} from "../utils";
+import {getAnnotationDiff} from "../utils";
 import {saveAnnotations} from "../redux/actions";
 import {connect} from "react-redux";
 import {getNewAnnotations, getOldAnnotations, getSaveStatus} from "../redux/selectors";
@@ -23,6 +23,8 @@ class ReviewChanges extends React.Component {
     }
 
     render() {
+
+        const annotDiff = getAnnotationDiff(this.props.oldAnnotations, this.props.newAnnotations);
 
         return (
             <Modal show={this.props.show} onHide={this.props.onHide}
@@ -43,7 +45,7 @@ class ReviewChanges extends React.Component {
                                          this.table2Ref.current.scrollTop = this.table1Ref.current.scrollTop;
                                          this.table2Ref.current.scrollLeft = this.table1Ref.current.scrollLeft;
                                      }}><AnatomyFunctionAnnotationTable annotations={this.props.oldAnnotations}
-                                                                        annotationsDiffStatus={getAnnotationsDiffStatus(this.props.oldAnnotations, this.props.newAnnotations)} /></div>
+                                                                        annotationsDiff={annotDiff} /></div>
                             </Col>
                             <Col sm={6}>
                                 <div ref={this.table2Ref} style={{height: "600px", width: "100%", overflow: 'scroll'}}
@@ -51,15 +53,14 @@ class ReviewChanges extends React.Component {
                                          this.table1Ref.current.scrollTop = this.table2Ref.current.scrollTop;
                                          this.table1Ref.current.scrollLeft = this.table2Ref.current.scrollLeft;
                                      }}><AnatomyFunctionAnnotationTable annotations={this.props.newAnnotations}
-                                                                        annotationsDiffStatus={getAnnotationsDiffStatus(this.props.oldAnnotations, this.props.newAnnotations)} /></div>
+                                                                        annotationsDiff={annotDiff} /></div>
                             </Col>
                         </Row>
                     </Container>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={() => {
-                        let diff = diffAnatomyFunctionAnnotations(this.props.oldAnnotations, this.props.newAnnotations);
-                        this.props.saveAnnotations(diff.diffAddOrMod, diff.diffDel);
+                        this.props.saveAnnotations(this.props.newAnnotations.filter(a => annotDiff.newIds.has(a.annotationId) || annotDiff.modifiedIds.has(a.annotationId)), this.props.oldAnnotations.filter(a => annotDiff.deletedIds.has(a.annotationId)));
                     }}>Save to DB</Button>
                 </Modal.Footer>
             </Modal>
@@ -91,11 +92,11 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                 {this.props.annotations.length === 0 ? 'No Annotations' :
                     this.props.annotations.map((a, idx) => {
                         let rowClass = '';
-                        if (this.props.annotationsDiffStatus.newIds.has(a.annotationId)) {
+                        if (this.props.annotationsDiff.newIds.has(a.annotationId)) {
                             rowClass = 'addedAnnotationRow';
-                        } else if (this.props.annotationsDiffStatus.deletedIds.has(a.annotationId)) {
+                        } else if (this.props.annotationsDiff.deletedIds.has(a.annotationId)) {
                             rowClass = 'deletedAnnotationRow';
-                        } else if (this.props.annotationsDiffStatus.modifiedIds.has(a.annotationId)) {
+                        } else if (this.props.annotationsDiff.modifiedIds.has(a.annotationId)) {
                             rowClass = 'modifiedAnnotationRow';
                         }
                         return(
