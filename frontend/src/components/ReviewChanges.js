@@ -71,7 +71,7 @@ class AnatomyFunctionAnnotationTable extends React.Component {
     render() {
 
         return (
-            <Table striped bordered hover size="sm">
+            <Table striped bordered hover size="sm" style={{minWidth: "2000px"}}>
                 <thead>
                     <tr style={{backgroundColor: 'lightgray'}}>
                         <th>ID</th>
