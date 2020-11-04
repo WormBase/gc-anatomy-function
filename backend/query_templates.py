@@ -28,8 +28,8 @@ QUERY_PHENOTYPE_TEMPLATE = Template('SELECT joinkey, wbb_phenotype, wbb_evitype,
 
 QUERY_ASSAY_TEMPLATE = Template('SELECT joinkey, wbb_assay, wbb_cond, wbb_timestamp '
                                 'FROM wbb_assay WHERE joinkey IN (SELECT joinkey FROM wbb_reference WHERE '
-                                'wbb_reference = \'WBPaper${paper_id}\') '
-                                'ORDER BY wbb_order, wbb_timestamp')
+                                'wbb_reference = \'WBPaper${paper_id}\') AND wbb_order = 1 '
+                                'ORDER BY wbb_timestamp')
 
 
 QUERY_REMARK_TEMPLATE = Template('SELECT joinkey, wbb_order, wbb_remark '
