@@ -106,11 +106,6 @@ class DBManager(object):
             annotations[row[0]].annotation_id = row[0]
             annotations[row[0]].created_time = row[1]
             annotations[row[0]].evidence = 'WBPaper' + wb_paper_id
-        self.cur.execute(QUERY_ALL_REFERENCES.substitute(paper_id=wb_paper_id))
-        rows = self.cur.fetchall()
-        for row in rows:
-            if row[1] != ("WBPaper" + wb_paper_id) and row[0] in annotations and annotations[row[0]].created_time < row[2]:
-                del annotations[row[0]]
         return annotations
 
     def _extract_genes_data(self, wb_paper_id):

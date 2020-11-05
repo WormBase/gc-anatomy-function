@@ -1,40 +1,37 @@
 from string import Template
 
+QUERY_ANNOTATIONS_IDS_FROM_REFERENCE = 'SELECT joinkey FROM (SELECT DISTINCT ON (joinkey) joinkey, wbb_reference FROM wbb_reference ' \
+                                       'ORDER BY joinkey, wbb_timestamp DESC) AS wbb_reference_latest WHERE ' \
+                                       'wbb_reference = \'WBPaper${paper_id}\''
 
 QUERY_INVOLVED_TEMPLATE = Template('SELECT joinkey, wbb_order, wbb_involved, wbb_evitype, wbb_evidence, wbb_timestamp '
-                                   'FROM wbb_involved WHERE joinkey in (SELECT joinkey FROM wbb_reference '
-                                   'WHERE wbb_reference = \'WBPaper${paper_id}\') '
+                                   'FROM wbb_involved WHERE joinkey in (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') '
                                    'ORDER BY wbb_timestamp DESC')
 
 
 QUERY_NOTINVOLVED_TEMPLATE = Template('SELECT joinkey, wbb_order, wbb_notinvolved, wbb_evitype, wbb_evidence, '
                                       'wbb_timestamp '
-                                      'FROM wbb_notinvolved WHERE joinkey IN (SELECT joinkey FROM wbb_reference WHERE '
-                                      'wbb_reference = \'WBPaper${paper_id}\') '
+                                      'FROM wbb_notinvolved WHERE joinkey IN (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') '
                                       'ORDER BY wbb_timestamp DESC')
 
 
 QUERY_GENE_TEMPLATE = Template('SELECT joinkey, wbb_gene, wbb_evitype, wbb_evidence, wbb_timestamp '
-                               'FROM wbb_gene WHERE joinkey IN (SELECT joinkey FROM wbb_reference WHERE '
-                               'wbb_reference = \'WBPaper${paper_id}\') '
+                               'FROM wbb_gene WHERE joinkey IN (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') '
                                'ORDER BY wbb_timestamp')
 
 
 QUERY_PHENOTYPE_TEMPLATE = Template('SELECT joinkey, wbb_phenotype, wbb_evitype, wbb_evidence '
-                                    'FROM wbb_phenotype WHERE joinkey IN (SELECT joinkey FROM wbb_reference WHERE '
-                                    'wbb_reference = \'WBPaper${paper_id}\') '
+                                    'FROM wbb_phenotype WHERE joinkey IN (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') '
                                     'ORDER BY wbb_timestamp')
 
 
 QUERY_ASSAY_TEMPLATE = Template('SELECT joinkey, wbb_assay, wbb_cond, wbb_timestamp '
-                                'FROM wbb_assay WHERE joinkey IN (SELECT joinkey FROM wbb_reference WHERE '
-                                'wbb_reference = \'WBPaper${paper_id}\') AND wbb_order = 1 '
+                                'FROM wbb_assay WHERE joinkey IN (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') AND wbb_order = 1 '
                                 'ORDER BY wbb_timestamp')
 
 
 QUERY_REMARK_TEMPLATE = Template('SELECT joinkey, wbb_order, wbb_remark '
-                                 'FROM wbb_remark WHERE joinkey IN (SELECT joinkey from wbb_reference '
-                                 'WHERE wbb_reference = \'WBPaper${paper_id}\') '
+                                 'FROM wbb_remark WHERE joinkey IN (' + QUERY_ANNOTATIONS_IDS_FROM_REFERENCE + ') '
                                  'ORDER BY wbb_remark.wbb_timestamp DESC, -(wbb_remark.wbb_order::INTEGER) ASC')
 
 
@@ -49,11 +46,6 @@ QUERY_ANATOMYTERM_NAME_TEMPLATE = Template('SELECT obo_name_anatomy FROM obo_nam
 QUERY_ANNOTATIONS_TEMPLATE = Template('SELECT joinkey, wbb_timestamp FROM wbb_wbbtf '
                                       'WHERE joinkey IN (SELECT joinkey from wbb_reference WHERE '
                                       'wbb_reference = \'WBPaper${paper_id}\')')
-
-
-QUERY_ALL_REFERENCES = Template('SELECT joinkey, wbb_reference, wbb_timestamp FROM wbb_reference where joinkey IN '
-                                '(SELECT joinkey FROM wbb_reference WHERE wbb_reference = \'WBPaper${paper_id}\')')
-
 
 GET_MAX_JOINKEY = 'SELECT max(joinkey::INTEGER) from wbb_wbbtf'
 
