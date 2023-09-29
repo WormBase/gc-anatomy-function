@@ -94,7 +94,7 @@ class Main extends React.Component {
                                            }}
                                            showAnnotationIds={true}
                                            evidence={"WBPaper" + this.state.evidence}
-                                           autocompleteObj={new WBAutocomplete('http://tazendra.caltech.edu/~azurebrd/cgi-bin/forms/datatype_objects.cgi?action=autocompleteXHR&objectType=')}
+                                           autocompleteObj={new WBAutocomplete('http://caltech-curation.textpressolab.com/pub/cgi-bin/forms/datatype_objects.cgi?action=autocompleteXHR&objectType=')}
                         />
                         : ''}
                     </Col>
