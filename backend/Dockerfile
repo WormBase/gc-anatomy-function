@@ -9,7 +9,7 @@ RUN pip3 install -r requirements.txt
 RUN pip3 install gunicorn
 RUN mkdir -p /var/log  # Ensure log directory exists
 
-COPY src/backend src/backend
+COPY backend backend
 
 
 ENV DB_NAME=""
@@ -21,4 +21,4 @@ ENV PYTHONPATH=$PYTHONPATH:/usr/src/app/
 
 EXPOSE ${PORT}
 
-CMD gunicorn -b 0.0.0.0:8001 -t 1800 src.backend.api:app >> /var/log/anatomy_function_api.log 2>&1
+CMD gunicorn -b 0.0.0.0:8001 -t 1800 backend.api:app >> /var/log/anatomy_function_api.log 2>&1
