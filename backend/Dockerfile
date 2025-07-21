@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y git
 ADD requirements.txt .
 RUN pip3 install -r requirements.txt
 RUN pip3 install gunicorn
-RUN python3 -c "import nltk; nltk.download('stopwords'); nltk.download('punkt')"
 RUN mkdir -p /var/log  # Ensure log directory exists
 
 COPY src/backend src/backend
