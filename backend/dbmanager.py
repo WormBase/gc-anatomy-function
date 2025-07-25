@@ -269,7 +269,7 @@ class DBManager(object):
                 if phenotype.entity_id != '':
                     annotations_dict[joinkey].phenotype = phenotype
                 else:
-                    del annotations_dict[joinkey]
+                    annotations_dict[joinkey].phenotype = phenotype
         for joinkey, assay in self._extract_assay_data(wb_paper_id).items():
             if joinkey in annotations_dict:
                 annotations_dict[joinkey].assay = assay
