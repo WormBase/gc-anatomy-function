@@ -61,23 +61,42 @@ class Annotation(object):
     def from_dict(annotation_dict):
         annot = Annotation()
         annot.annotation_id = annotation_dict["annotationId"]
-        annot.phenotype.entity_id = annotation_dict["phenotype"]["modId"]
-        annot.phenotype.entity_name = annotation_dict["phenotype"]["value"]
-        annot.phenotype.options = set([opt for opt, value in annotation_dict["phenotype"]["options"].items() if
-                                       value == 1])
-        annot.gene = Entity(entity_id=annotation_dict["gene"]["modId"] if annotation_dict["gene"] else '',
-                            entity_name=annotation_dict["gene"]["value"] if annotation_dict["gene"] else '')
+        
+        # Validate and handle phenotype
+        if annotation_dict.get("phenotype") and isinstance(annotation_dict["phenotype"], dict):
+            annot.phenotype.entity_id = annotation_dict["phenotype"].get("modId", "")
+            annot.phenotype.entity_name = annotation_dict["phenotype"].get("value", "")
+            annot.phenotype.options = set([opt for opt, value in annotation_dict["phenotype"].get("options", {}).items() if
+                                           value == 1])
+        else:
+            raise ValueError(f"Invalid phenotype data for annotation {annotation_dict['annotationId']}")
+        
+        # Validate and handle gene
+        if annotation_dict.get("gene") and isinstance(annotation_dict["gene"], dict):
+            annot.gene = Entity(entity_id=annotation_dict["gene"].get("modId", ""),
+                                entity_name=annotation_dict["gene"].get("value", ""))
+        elif annotation_dict.get("gene") == "":
+            annot.gene = Entity(entity_id="", entity_name="")
+        else:
+            raise ValueError(f"Invalid gene data for annotation {annotation_dict['annotationId']}")
+        
         annot.involved_option = annotation_dict["involved"]
-        annot.anatomy_terms = [Entity(entity_id=term["modId"], entity_name=term["value"],
-                                      options=set([opt for opt, value in term["options"].items() if value == 1])) for
-                               term in annotation_dict["anatomyTerms"]]
-        annot.remarks = annotation_dict["remarks"]
-        annot.noctuamodels = annotation_dict["noctuamodels"]
-        annot.genotypes = annotation_dict["genotypes"]
-        annot.authorstatements = annotation_dict["authorstatements"]
-        annot.assay = annotation_dict["assay"]["value"]
-        annot.created_time = datetime.datetime.fromtimestamp(annotation_dict["dateAssigned"] / 1000)
-        annot.evidence = annotation_dict["evidence"]
+        
+        # Validate anatomy terms
+        if annotation_dict.get("anatomyTerms") and isinstance(annotation_dict["anatomyTerms"], list):
+            annot.anatomy_terms = [Entity(entity_id=term.get("modId", ""), entity_name=term.get("value", ""),
+                                          options=set([opt for opt, value in term.get("options", {}).items() if value == 1])) for
+                                   term in annotation_dict["anatomyTerms"] if isinstance(term, dict)]
+        else:
+            annot.anatomy_terms = []
+        
+        annot.remarks = annotation_dict.get("remarks", [])
+        annot.noctuamodels = annotation_dict.get("noctuamodels", [])
+        annot.genotypes = annotation_dict.get("genotypes", [])
+        annot.authorstatements = annotation_dict.get("authorstatements", [])
+        annot.assay = annotation_dict.get("assay", {}).get("value", "")
+        annot.created_time = datetime.datetime.fromtimestamp(annotation_dict.get("dateAssigned", 0) / 1000)
+        annot.evidence = annotation_dict.get("evidence", "")
         return annot
 
 
@@ -335,7 +354,30 @@ class DBManager(object):
         empty_annot = Annotation()
         for del_annot in del_annotations:
             self._save_annotation(empty_annot, del_annot["annotationId"].replace(" notinvolved", ""))
-        annots_to_save = [Annotation.from_dict(annot) for annot in add_or_mod_annotations]
+        
+        # Filter and validate annotations before saving
+        annots_to_save = []
+        for annot_dict in add_or_mod_annotations:
+            try:
+                # Skip annotations marked as invalid
+                if annot_dict.get("_isInvalid"):
+                    logger.warning(f"Skipping invalid annotation: {annot_dict.get('annotationId', 'unknown')}")
+                    continue
+                
+                # Validate required fields have IDs
+                if (not annot_dict.get("phenotype", {}).get("modId") or 
+                    not annot_dict.get("gene", {}).get("modId") or
+                    not annot_dict.get("anatomyTerms") or 
+                    not all(term.get("modId") for term in annot_dict.get("anatomyTerms", []))):
+                    logger.warning(f"Skipping annotation with missing IDs: {annot_dict.get('annotationId', 'unknown')}")
+                    continue
+                
+                annot = Annotation.from_dict(annot_dict)
+                annots_to_save.append(annot)
+            except Exception as e:
+                logger.error(f"Error processing annotation {annot_dict.get('annotationId', 'unknown')}: {str(e)}")
+                continue
+        
         self._transform_annotations_for_db(annots_to_save)
         for annot in annots_to_save:
             if len(annot.annotation_id) < 10 or annot.annotation_id.endswith(" notinvolved"):

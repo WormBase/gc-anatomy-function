@@ -85,12 +85,104 @@ class Main extends React.Component {
                                            entities={entities}
                                            anatomyFunctionAnnotations={this.props.newAnnotations}
                                            annotationsSaved={annotations => {
-                                               let diff = getAnnotationDiff(this.props.oldAnnotations, annotations.anatomyFunction);
+                                               // Process annotations to handle manual entries
+                                               const processedAnnotations = annotations.anatomyFunction.map(annot => {
+                                                   const manualEntries = [];
+                                                   
+                                                   // Process anatomy terms (involved tissues)
+                                                   const validAnatomyTerms = [];
+                                                   if (annot.anatomyTerms && annot.anatomyTerms.length > 0) {
+                                                       annot.anatomyTerms.forEach(term => {
+                                                           if (!term.modId || term.modId === '') {
+                                                               manualEntries.push(`Manual anatomy term: ${term.value}`);
+                                                           } else {
+                                                               validAnatomyTerms.push(term);
+                                                           }
+                                                       });
+                                                   }
+                                                   
+                                                   // Process gene
+                                                   let validGene = annot.gene;
+                                                   if (annot.gene && (!annot.gene.modId || annot.gene.modId === '')) {
+                                                       manualEntries.push(`Manual gene: ${annot.gene.value}`);
+                                                       validGene = null;
+                                                   }
+                                                   
+                                                   // Process phenotype
+                                                   let validPhenotype = annot.phenotype;
+                                                   if (annot.phenotype && (!annot.phenotype.modId || annot.phenotype.modId === '')) {
+                                                       manualEntries.push(`Manual phenotype: ${annot.phenotype.value}`);
+                                                       validPhenotype = null;
+                                                   }
+                                                   
+                                                   // Create updated annotation
+                                                   const updatedAnnot = {
+                                                       ...annot,
+                                                       anatomyTerms: validAnatomyTerms,
+                                                       gene: validGene,
+                                                       phenotype: validPhenotype
+                                                   };
+                                                   
+                                                   // Add manual entries to remarks
+                                                   if (manualEntries.length > 0) {
+                                                       updatedAnnot.remarks = [
+                                                           ...(annot.remarks || []),
+                                                           ...manualEntries
+                                                       ];
+                                                   }
+                                                   
+                                                   return updatedAnnot;
+                                               });
+                                               
+                                               // Filter out null annotations from early validation
+                                               const validProcessedAnnotations = processedAnnotations.filter(annot => annot !== null);
+                                               
+                                               // Mark annotations as invalid if they don't have required entities
+                                               const annotationsWithValidation = validProcessedAnnotations.map((annot, index) => {
+                                                   // Check if annotation has all required entities with valid IDs
+                                                   const hasValidAnatomyTerms = annot.anatomyTerms.length > 0 && 
+                                                                               annot.anatomyTerms.every(term => term && term.modId && term.modId !== '');
+                                                   const hasValidGene = annot.gene && annot.gene.modId && annot.gene.modId !== '';
+                                                   const hasValidPhenotype = annot.phenotype && annot.phenotype.modId && annot.phenotype.modId !== '';
+                                                   
+                                                   const isValid = hasValidAnatomyTerms && hasValidGene && hasValidPhenotype;
+                                                   
+                                                   if (!isValid) {
+                                                       const missingFields = [];
+                                                       if (!hasValidAnatomyTerms) {
+                                                           if (annot.anatomyTerms.length === 0) {
+                                                               missingFields.push('anatomy terms');
+                                                           } else {
+                                                               missingFields.push('anatomy terms with valid IDs');
+                                                           }
+                                                       }
+                                                       if (!hasValidGene) missingFields.push('gene with valid ID');
+                                                       if (!hasValidPhenotype) missingFields.push('phenotype with valid ID');
+                                                       
+                                                       console.warn(`Annotation at index ${index} has missing valid IDs for: ${missingFields.join(', ')}`);
+                                                       
+                                                       // Add validation flag and warning to remarks
+                                                       const warningMessage = `⚠️ WARNING: This annotation cannot be saved - missing valid IDs for: ${missingFields.join(', ')}`;
+                                                       const existingRemarks = annot.remarks || [];
+                                                       const hasWarning = existingRemarks.some(remark => remark.startsWith('⚠️ WARNING:'));
+                                                       
+                                                       return {
+                                                           ...annot,
+                                                           _isInvalid: true,
+                                                           remarks: hasWarning ? existingRemarks : [...existingRemarks, warningMessage]
+                                                       };
+                                                   }
+                                                   
+                                                   return annot;
+                                               });
+                                               
+                                               
+                                               let diff = getAnnotationDiff(this.props.oldAnnotations, annotationsWithValidation);
                                                this.setState({
                                                    showDiff: (diff.newIds.size + diff.modifiedIds.size + diff.deletedIds.size) > 0,
                                                    showNoDiff: (diff.newIds.size + diff.modifiedIds.size + diff.deletedIds.size) === 0
                                                });
-                                               this.props.setNewAnnotations(annotations.anatomyFunction)
+                                               this.props.setNewAnnotations(annotationsWithValidation)
                                            }}
                                            showAnnotationIds={true}
                                            evidence={"WBPaper" + this.state.evidence}

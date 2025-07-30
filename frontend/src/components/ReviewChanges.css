@@ -9,3 +9,9 @@
 .modifiedAnnotationRow {
     background-color: yellow;
 }
+
+.invalidAnnotationRow {
+    background-color: #ffcccc;
+    border: 2px solid #ff4444;
+    opacity: 0.8;
+}

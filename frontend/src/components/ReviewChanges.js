@@ -60,7 +60,22 @@ class ReviewChanges extends React.Component {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={() => {
-                        this.props.saveAnnotations(this.props.newAnnotations.filter(a => annotDiff.newIds.has(a.annotationId) || annotDiff.modifiedIds.has(a.annotationId)), this.props.oldAnnotations.filter(a => annotDiff.deletedIds.has(a.annotationId)));
+                        // Filter out invalid annotations before saving
+                        const validNewAnnotations = this.props.newAnnotations.filter(a => 
+                            !a._isInvalid && (annotDiff.newIds.has(a.annotationId) || annotDiff.modifiedIds.has(a.annotationId))
+                        );
+                        const deletedAnnotations = this.props.oldAnnotations.filter(a => annotDiff.deletedIds.has(a.annotationId));
+                        
+                        // Check if any invalid annotations were skipped
+                        const skippedInvalidCount = this.props.newAnnotations.filter(a => 
+                            a._isInvalid && (annotDiff.newIds.has(a.annotationId) || annotDiff.modifiedIds.has(a.annotationId))
+                        ).length;
+                        
+                        if (skippedInvalidCount > 0) {
+                            alert(`${skippedInvalidCount} invalid annotation(s) were skipped during save. Please add valid entity IDs to save them.`);
+                        }
+                        
+                        this.props.saveAnnotations(validNewAnnotations, deletedAnnotations);
                     }}>Save to DB</Button>
                 </Modal.Footer>
             </Modal>
@@ -92,7 +107,9 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                 {this.props.annotations.length === 0 ? 'No Annotations' :
                     this.props.annotations.map((a, idx) => {
                         let rowClass = '';
-                        if (this.props.annotationsDiff.newIds.has(a.annotationId)) {
+                        if (a._isInvalid) {
+                            rowClass = 'invalidAnnotationRow';
+                        } else if (this.props.annotationsDiff.newIds.has(a.annotationId)) {
                             rowClass = 'addedAnnotationRow';
                         } else if (this.props.annotationsDiff.deletedIds.has(a.annotationId)) {
                             rowClass = 'deletedAnnotationRow';
@@ -103,16 +120,20 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                         <tr className={rowClass}>
                             <td className={rowClass}><p style={{width: "100px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}>{a.annotationId}</p></td>
                             <td className={rowClass}>
-                                <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.phenotype.modId}</Tooltip>}>
-                                    <span>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</span>
-                                </OverlayTrigger>
+                                {a.phenotype ? 
+                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.phenotype.modId || 'No ID'}</Tooltip>}>
+                                        <span>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options || {}).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</span>
+                                    </OverlayTrigger>
+                                    : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>
+                                }
                             </td>
                             <td className={rowClass}>
-                                {a.gene !== '' ?
-                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.gene.modId}</Tooltip>}>
+                                {a.gene && a.gene !== '' ?
+                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.gene.modId || 'No ID'}</Tooltip>}>
                                         <span>{a.gene.value}</span>
                                     </OverlayTrigger>
-                                    : ''}
+                                    : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>
+                                }
                             </td>
                             <td className={rowClass}>
                                 {a.involved}
