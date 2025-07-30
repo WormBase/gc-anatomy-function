@@ -101,18 +101,18 @@ class Main extends React.Component {
                                                        });
                                                    }
                                                    
-                                                   // Process gene
+                                                   // Process gene - keep the entity but clear the ID for manual entries
                                                    let validGene = annot.gene;
                                                    if (annot.gene && (!annot.gene.modId || annot.gene.modId === '')) {
                                                        manualEntries.push(`Manual gene: ${annot.gene.value}`);
-                                                       validGene = null;
+                                                       validGene = {...annot.gene, modId: ''};
                                                    }
                                                    
-                                                   // Process phenotype
+                                                   // Process phenotype - keep the entity but clear the ID for manual entries
                                                    let validPhenotype = annot.phenotype;
                                                    if (annot.phenotype && (!annot.phenotype.modId || annot.phenotype.modId === '')) {
                                                        manualEntries.push(`Manual phenotype: ${annot.phenotype.value}`);
-                                                       validPhenotype = null;
+                                                       validPhenotype = {...annot.phenotype, modId: ''};
                                                    }
                                                    
                                                    // Create updated annotation
