@@ -45,7 +45,8 @@ class ReviewChanges extends React.Component {
                                          this.table2Ref.current.scrollTop = this.table1Ref.current.scrollTop;
                                          this.table2Ref.current.scrollLeft = this.table1Ref.current.scrollLeft;
                                      }}><AnatomyFunctionAnnotationTable annotations={this.props.oldAnnotations}
-                                                                        annotationsDiff={annotDiff} /></div>
+                                                                        annotationsDiff={annotDiff} 
+                                                                        isOldAnnotations={true} /></div>
                             </Col>
                             <Col sm={6}>
                                 <div ref={this.table2Ref} style={{height: "600px", width: "100%", overflow: 'scroll'}}
@@ -120,21 +121,31 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                         <tr className={rowClass}>
                             <td className={rowClass}><p style={{width: "100px", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis"}}>{a.annotationId}</p></td>
                             <td className={rowClass}>
-                                {a.phenotype ? 
-                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.phenotype.modId || 'No ID'}</Tooltip>}>
+                                {a.phenotype && a.phenotype.modId && a.phenotype.modId !== '' ? 
+                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.phenotype.modId}</Tooltip>}>
                                         <span>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options || {}).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</span>
                                     </OverlayTrigger>
-                                    : (this.props.annotationsDiff.newIds.has(a.annotationId) ? 
+                                    : a.phenotype && (!a.phenotype.modId || a.phenotype.modId === '') ?
+                                        <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed: {a.phenotype.value}</span>
+                                    : (this.props.isOldAnnotations || 
+                                       this.props.annotationsDiff.newIds.has(a.annotationId) ||
+                                       (!this.props.annotationsDiff.modifiedIds.has(a.annotationId) && 
+                                        !this.props.annotationsDiff.deletedIds.has(a.annotationId)) ? 
                                         <span style={{color: 'gray', fontStyle: 'italic'}}>Not specified</span>
                                         : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>)
                                 }
                             </td>
                             <td className={rowClass}>
-                                {a.gene && a.gene !== '' ?
-                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.gene.modId || 'No ID'}</Tooltip>}>
+                                {a.gene && a.gene !== '' && a.gene.modId && a.gene.modId !== '' ?
+                                    <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.gene.modId}</Tooltip>}>
                                         <span>{a.gene.value}</span>
                                     </OverlayTrigger>
-                                    : (this.props.annotationsDiff.newIds.has(a.annotationId) ? 
+                                    : a.gene && a.gene !== '' && (!a.gene.modId || a.gene.modId === '') ?
+                                        <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed: {a.gene.value}</span>
+                                    : (this.props.isOldAnnotations || 
+                                       this.props.annotationsDiff.newIds.has(a.annotationId) ||
+                                       (!this.props.annotationsDiff.modifiedIds.has(a.annotationId) && 
+                                        !this.props.annotationsDiff.deletedIds.has(a.annotationId)) ? 
                                         <span style={{color: 'gray', fontStyle: 'italic'}}>Not specified</span>
                                         : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>)
                                 }
