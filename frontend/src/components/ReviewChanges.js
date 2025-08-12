@@ -124,7 +124,9 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                                     <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.phenotype.modId || 'No ID'}</Tooltip>}>
                                         <span>{a.phenotype.value + ' ' + Object.entries(a.phenotype.options || {}).map(([o, v]) => v ? '(' + o + ') ' : '').join('')}</span>
                                     </OverlayTrigger>
-                                    : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>
+                                    : (this.props.annotationsDiff.newIds.has(a.annotationId) ? 
+                                        <span style={{color: 'gray', fontStyle: 'italic'}}>Not specified</span>
+                                        : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>)
                                 }
                             </td>
                             <td className={rowClass}>
@@ -132,7 +134,9 @@ class AnatomyFunctionAnnotationTable extends React.Component {
                                     <OverlayTrigger trigger="click" delay={{ show: 250, hide: 400 }} overlay={<Tooltip id="button-tooltip">{a.gene.modId || 'No ID'}</Tooltip>}>
                                         <span>{a.gene.value}</span>
                                     </OverlayTrigger>
-                                    : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>
+                                    : (this.props.annotationsDiff.newIds.has(a.annotationId) ? 
+                                        <span style={{color: 'gray', fontStyle: 'italic'}}>Not specified</span>
+                                        : <span style={{color: 'red', fontStyle: 'italic'}}>Manual entry removed</span>)
                                 }
                             </td>
                             <td className={rowClass}>

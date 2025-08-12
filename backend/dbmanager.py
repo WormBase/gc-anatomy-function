@@ -365,8 +365,11 @@ class DBManager(object):
                     continue
                 
                 # Validate required fields have IDs
+                gene_data = annot_dict.get("gene", {})
+                gene_has_id_requirement = gene_data and gene_data != "" and isinstance(gene_data, dict)
+                
                 if (not annot_dict.get("phenotype", {}).get("modId") or 
-                    not annot_dict.get("gene", {}).get("modId") or
+                    (gene_has_id_requirement and not gene_data.get("modId")) or
                     not annot_dict.get("anatomyTerms") or 
                     not all(term.get("modId") for term in annot_dict.get("anatomyTerms", []))):
                     logger.warning(f"Skipping annotation with missing IDs: {annot_dict.get('annotationId', 'unknown')}")

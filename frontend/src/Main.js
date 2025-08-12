@@ -103,7 +103,7 @@ class Main extends React.Component {
                                                    
                                                    // Process gene - keep the entity but clear the ID for manual entries
                                                    let validGene = annot.gene;
-                                                   if (annot.gene && (!annot.gene.modId || annot.gene.modId === '')) {
+                                                   if (annot.gene && annot.gene.value && (!annot.gene.modId || annot.gene.modId === '')) {
                                                        manualEntries.push(`Manual gene: ${annot.gene.value}`);
                                                        validGene = {...annot.gene, modId: ''};
                                                    }
@@ -142,7 +142,7 @@ class Main extends React.Component {
                                                    // Check if annotation has all required entities with valid IDs
                                                    const hasValidAnatomyTerms = annot.anatomyTerms.length > 0 && 
                                                                                annot.anatomyTerms.every(term => term && term.modId && term.modId !== '');
-                                                   const hasValidGene = annot.gene && annot.gene.modId && annot.gene.modId !== '';
+                                                   const hasValidGene = !annot.gene || annot.gene === '' || (annot.gene.modId && annot.gene.modId !== '');
                                                    const hasValidPhenotype = annot.phenotype && annot.phenotype.modId && annot.phenotype.modId !== '';
                                                    
                                                    const isValid = hasValidAnatomyTerms && hasValidGene && hasValidPhenotype;
