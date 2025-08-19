@@ -29,7 +29,7 @@ class Main extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.saveStatus !== prevProps.saveStatus && this.props.saveStatus === "Success") {
             this.setState({showDiff: false});
-            const paperId = this.state.paperId.replace('WBPaper', '');
+            const paperId = this.state.paperId.replace('WBPaper', '').trim();
             this.props.loadPaper(paperId);
         }
     }
@@ -68,7 +68,7 @@ class Main extends React.Component {
                     </Col>
                     <Col sm={1}>
                         <Button variant="light" onClick={() => {
-                            const paperId = this.state.paperId.replace('WBPaper', '');
+                            const paperId = this.state.paperId.replace('WBPaper', '').trim();
                             this.props.loadPaper(paperId); this.setState({evidence: paperId, paperId: paperId})}}>Load
                         </Button>
                     </Col>
